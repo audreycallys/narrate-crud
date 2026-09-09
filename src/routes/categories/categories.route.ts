@@ -15,4 +15,7 @@ router.get("/:id", CategoriesController.getCategoryById);
 // Update Category
 router.put("/:id", CategoriesController.updateCategory);
 
+// Delete Category
+router.delete("/:id", CategoriesController.deleteCategory);
+
 export default router;
