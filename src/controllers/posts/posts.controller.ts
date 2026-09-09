@@ -17,7 +17,6 @@ export class PostsController {
   createPost = async (req: Request, res: Response) => {
     try {
       const validateData = createPostSchema.parse(req.body);
-
       const { categoryId, authorName, title, content, status } = validateData;
 
       let imageUrl: string | undefined;
@@ -92,9 +91,7 @@ export class PostsController {
   getPostById = async (req: Request, res: Response) => {
     try {
       const validatedParams = postIdSchema.parse(req.params);
-
       const { id } = validatedParams;
-
       const [post] = await db
         .select()
         .from(postsTable)
@@ -130,11 +127,8 @@ export class PostsController {
     try {
       const validatedParams = postIdSchema.parse(req.params);
       const { id } = validatedParams;
-
       const validateData = updatePostSchema.parse(req.body);
-
       const { categoryId, authorName, title, content, status } = validateData;
-
       const [existingPost] = await db
         .select()
         .from(postsTable)
@@ -192,6 +186,49 @@ export class PostsController {
       });
     } catch (error) {
       console.error("Update post error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
+
+  // Hapus Postingan
+  deletePost = async (req: Request, res: Response) => {
+    try {
+      const validatedParams = postIdSchema.parse(req.params);
+      const { id } = validatedParams;
+
+      const [existingPost] = await db
+        .select()
+        .from(postsTable)
+        .where(eq(postsTable.id, id));
+
+      if (!existingPost) {
+        return res.status(404).json({
+          success: false,
+          message: "Post Not Found",
+        });
+      }
+
+      await db.delete(postsTable).where(eq(postsTable.id, id));
+
+      if (existingPost.imagePublicId) {
+        try {
+          await deleteFromCloudinary(existingPost.imagePublicId);
+        } catch (error) {
+          console.error("Delete image error:", error);
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Post deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete post error:", error);
 
       return res.status(500).json({
         success: false,
