@@ -5,6 +5,7 @@ import { uploadToCloudinary } from "../../services/cloudinary.service";
 import {
   createPostSchema,
   postIdSchema,
+  updatePostSchema
 } from "../../validations/posts/post.validation";
 import { and, desc, eq } from "drizzle-orm";
 
