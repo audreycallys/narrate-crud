@@ -6,4 +6,7 @@ const router = Router();
 // Get All Categories
 router.get("/", CategoriesController.getCategories);
 
+// Create Category
+router.post("/", CategoriesController.createCategory);
+
 export default router;
