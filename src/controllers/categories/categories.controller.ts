@@ -68,7 +68,7 @@ export class CategoriesController {
     }
   };
 
-  // Membaca Category Berdasarkan ID
+  // Membaca Category Berdasarkan Id
   getCategoryById = async (req: Request, res: Response) => {
     try {
       const validatedParams = categoryIdSchema.parse(req.params);
