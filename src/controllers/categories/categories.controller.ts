@@ -5,6 +5,7 @@ import { asc, eq } from "drizzle-orm";
 import {
   createCategorySchema,
   categoryIdSchema,
+  updateCategorySchema,
 } from "../../validations/categories/category.validation";
 
 export class CategoriesController {
@@ -67,7 +68,7 @@ export class CategoriesController {
     }
   };
 
-  // Membaca Category Berdasarkan ID
+  // Membaca Category Berdasarkan Id
   getCategoryById = async (req: Request, res: Response) => {
     try {
       const validatedParams = categoryIdSchema.parse(req.params);
@@ -94,6 +95,54 @@ export class CategoriesController {
       });
     } catch (error) {
       console.error("Get category by id error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
+
+  // Update Category
+  updateCategory = async (req: Request, res: Response) => {
+    try {
+      const validatedParams = categoryIdSchema.parse(req.params);
+      const { id } = validatedParams;
+
+      const validateData = updateCategorySchema.parse(req.body);
+      const { name, description } = validateData;
+
+      const [existingCategory] = await db
+        .select()
+        .from(categoriesTable)
+        .where(eq(categoriesTable.id, id));
+
+      if (!existingCategory) {
+        return res.status(404).json({
+          success: false,
+          message: "Category Not Found",
+        });
+      }
+
+      const [updatedCategory] = await db
+        .update(categoriesTable)
+        .set({
+          name,
+          description,
+        })
+        .where(eq(categoriesTable.id, id))
+        .returning();
+
+      return res.status(200).json({
+        success: true,
+        message: "Category updated successfully",
+        data: {
+          category: updatedCategory,
+        },
+      });
+    } catch (error) {
+      console.error("Update category error:", error);
 
       return res.status(500).json({
         success: false,
