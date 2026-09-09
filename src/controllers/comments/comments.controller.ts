@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "../../config/db";
 import { commentsTable, postsTable } from "../../config/schema";
 import {
@@ -48,6 +48,48 @@ export class CommentsController {
       });
     } catch (error) {
       console.error("Create comment error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
+
+  // Membaca Comment Berdasarkan Post
+  getCommentsByPost = async (req: Request, res: Response) => {
+    try {
+      const validatedParams = postIdParamSchema.parse(req.params);
+      const { postId } = validatedParams;
+
+      const [post] = await db
+        .select()
+        .from(postsTable)
+        .where(eq(postsTable.id, postId));
+
+      if (!post) {
+        return res.status(404).json({
+          success: false,
+          message: "Post Not Found",
+        });
+      }
+
+      const comments = await db
+        .select()
+        .from(commentsTable)
+        .where(eq(commentsTable.postId, postId))
+        .orderBy(desc(commentsTable.createdAt));
+
+      return res.status(200).json({
+        success: true,
+        message: "Get Comments Successfully",
+        data: {
+          comments: comments,
+        },
+      });
+    } catch (error) {
+      console.error("Get comments error:", error);
 
       return res.status(500).json({
         success: false,
