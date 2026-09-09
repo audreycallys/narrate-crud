@@ -14,3 +14,9 @@ export const createCommentSchema = z.object({
 export const postIdParamSchema = z.object({
   postId: z.coerce.number().int().positive("Post ID tidak valid"),
 });
+
+export const commentIdParamSchema = z.object({
+  postId: z.coerce.number().int().positive("Post ID tidak valid"),
+
+  id: z.coerce.number().int().positive("Comment ID tidak valid"),
+});
