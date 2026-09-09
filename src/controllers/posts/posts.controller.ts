@@ -3,10 +3,10 @@ import { db } from "../../config/db";
 import { postsTable } from "../../config/schema";
 import { uploadToCloudinary } from "../../services/cloudinary.service";
 import { createPostSchema } from "../../validations/posts/post.validation";
+import { desc, eq } from "drizzle-orm";
 
 export class PostsController {
-
-    // Membuat Postingan Artikel
+  // Membuat Postingan Artikel
   createPost = async (req: Request, res: Response) => {
     try {
       const validateData = createPostSchema.parse(req.body);
@@ -45,6 +45,33 @@ export class PostsController {
       });
     } catch (error) {
       console.error("Create post error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
+
+  // Membaca Semua Artikel
+  getPosts = async (req: Request, res: Response) => {
+    try {
+      const posts = await db
+        .select()
+        .from(postsTable)
+        .where(eq(postsTable.status, "published"))
+        .orderBy(desc(postsTable.createdAt));
+
+      return res.status(200).json({
+        success: true,
+        message: "Get Posts Successfully",
+        data: {
+          posts: posts,
+        },
+      });
+    } catch (error) {
+      console.error("Get posts error:", error);
 
       return res.status(500).json({
         success: false,

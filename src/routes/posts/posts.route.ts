@@ -5,10 +5,9 @@ import PostsController from "../../controllers/posts/posts.controller";
 const router = Router();
 
 // Create
-router.post(
-  "/",
-  uploadSingleImage,
-  PostsController.createPost
-);
+router.post("/", uploadSingleImage, PostsController.createPost);
+
+// Read All
+router.get("/", PostsController.getPosts);
 
 export default router;
