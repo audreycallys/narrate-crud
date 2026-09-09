@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import { db } from "../../config/db";
 import { categoriesTable } from "../../config/schema";
-import { asc } from "drizzle-orm";
-import { createCategorySchema } from "../../validations/categories/category.validation";
+import { asc, eq } from "drizzle-orm";
+import {
+  createCategorySchema,
+  categoryIdSchema,
+} from "../../validations/categories/category.validation";
 
 export class CategoriesController {
   // Membaca Semua Category
@@ -55,6 +58,42 @@ export class CategoriesController {
       });
     } catch (error) {
       console.error("Create category error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
+
+  // Membaca Category Berdasarkan ID
+  getCategoryById = async (req: Request, res: Response) => {
+    try {
+      const validatedParams = categoryIdSchema.parse(req.params);
+      const { id } = validatedParams;
+
+      const [category] = await db
+        .select()
+        .from(categoriesTable)
+        .where(eq(categoriesTable.id, id));
+
+      if (!category) {
+        return res.status(404).json({
+          success: false,
+          message: "Category Not Found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Category retrieved successfully",
+        data: {
+          category: category,
+        },
+      });
+    } catch (error) {
+      console.error("Get category by id error:", error);
 
       return res.status(500).json({
         success: false,

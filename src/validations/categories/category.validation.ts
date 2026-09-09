@@ -8,3 +8,7 @@ export const createCategorySchema = z.object({
 
   description: z.string().optional(),
 });
+
+export const categoryIdSchema = z.object({
+  id: z.coerce.number().int().positive("Category ID tidak valid"),
+});
