@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 import { db } from "../../config/db";
 import { postsTable } from "../../config/schema";
-import { uploadToCloudinary } from "../../services/cloudinary.service";
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../../services/cloudinary.service";
 import {
   createPostSchema,
   postIdSchema,
@@ -167,6 +170,18 @@ export class PostsController {
         })
         .where(eq(postsTable.id, id))
         .returning();
+
+      if (
+        req.file &&
+        existingPost.imagePublicId &&
+        existingPost.imagePublicId !== imagePublicId
+      ) {
+        try {
+          await deleteFromCloudinary(existingPost.imagePublicId);
+        } catch (error) {
+          console.error("Delete old image error:", error);
+        }
+      }
 
       return res.status(200).json({
         success: true,
