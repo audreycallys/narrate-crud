@@ -4,10 +4,13 @@ import PostsController from "../../controllers/posts/posts.controller";
 
 const router = Router();
 
-// Create
+// Create Posts
 router.post("/", uploadSingleImage, PostsController.createPost);
 
-// Read All
+// Read All Posts
 router.get("/", PostsController.getPosts);
+
+// Read Post By ID
+router.get("/:id", PostsController.getPostById);
 
 export default router;
