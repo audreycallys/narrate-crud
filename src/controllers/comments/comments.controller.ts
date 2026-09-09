@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../config/db";
 import { commentsTable, postsTable } from "../../config/schema";
 import {
   createCommentSchema,
   postIdParamSchema,
+  commentIdParamSchema,
 } from "../../validations/comments/comment.validation";
 
 export class CommentsController {
@@ -90,6 +91,44 @@ export class CommentsController {
       });
     } catch (error) {
       console.error("Get comments error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
+
+  // Menghapus Comment
+  deleteComment = async (req: Request, res: Response) => {
+    try {
+      const validatedParams = commentIdParamSchema.parse(req.params);
+
+      const { postId, id } = validatedParams;
+
+      const [existingComment] = await db
+        .select()
+        .from(commentsTable)
+        .where(and(eq(commentsTable.id, id), eq(commentsTable.postId, postId)));
+
+      if (!existingComment) {
+        return res.status(404).json({
+          success: false,
+          message: "Comment Not Found",
+        });
+      }
+
+      await db
+        .delete(commentsTable)
+        .where(and(eq(commentsTable.id, id), eq(commentsTable.postId, postId)));
+
+      return res.status(200).json({
+        success: true,
+        message: "Comment deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete comment error:", error);
 
       return res.status(500).json({
         success: false,
