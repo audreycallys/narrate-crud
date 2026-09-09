@@ -3,11 +3,12 @@ import cloudinary from "../config/cloudinary";
 // Helper upload ke Cloudinary via stream buffer
 export const uploadToCloudinary = (
   fileBuffer: Buffer,
+  folder: string = "posts",
 ): Promise<{ secure_url: string; public_id: string }> => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        folder: "posts", // Nama folder tujuan
+        folder: folder, // Nama folder tujuan // Diubah bukan "posts" tapi folder
         resource_type: "image", // Eksplisit tentukan tipe resource sebagai gambar
       },
       (error, result) => {
