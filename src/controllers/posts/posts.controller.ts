@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import { db } from "../../config/db";
 import { postsTable } from "../../config/schema";
 import { uploadToCloudinary } from "../../services/cloudinary.service";
-import { createPostSchema } from "../../validations/posts/post.validation";
-import { desc, eq } from "drizzle-orm";
+import { createPostSchema, postIdSchema } from "../../validations/posts/post.validation";
+import { and, desc, eq } from "drizzle-orm";
 
 export class PostsController {
   // Membuat Postingan Artikel
@@ -80,6 +80,8 @@ export class PostsController {
       });
     }
   };
+
+  // Membaca Artikel Berdasarkan Id
 }
 
 export default new PostsController();
