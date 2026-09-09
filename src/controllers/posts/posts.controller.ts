@@ -5,6 +5,8 @@ import { uploadToCloudinary } from "../../services/cloudinary.service";
 import { createPostSchema } from "../../validations/posts/post.validation";
 
 export class PostsController {
+
+    // Membuat Postingan Artikel
   createPost = async (req: Request, res: Response) => {
     try {
       const validateData = createPostSchema.parse(req.body);
