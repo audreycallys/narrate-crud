@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { db } from "../../config/db";
 import { categoriesTable } from "../../config/schema";
 import { asc } from "drizzle-orm";
+import { createCategorySchema } from "../../validations/categories/category.validation";
 
 export class CategoriesController {
   // Membaca Semua Category
@@ -21,6 +22,39 @@ export class CategoriesController {
       });
     } catch (error) {
       console.error("Get categories error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
+
+  // Membuat Category
+  createCategory = async (req: Request, res: Response) => {
+    try {
+      const validateData = createCategorySchema.parse(req.body);
+
+      const { name, description } = validateData;
+
+      const [newCategory] = await db
+        .insert(categoriesTable)
+        .values({
+          name,
+          description,
+        })
+        .returning();
+
+      return res.status(201).json({
+        success: true,
+        message: "Category created successfully",
+        data: {
+          category: newCategory,
+        },
+      });
+    } catch (error) {
+      console.error("Create category error:", error);
 
       return res.status(500).json({
         success: false,
