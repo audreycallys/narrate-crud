@@ -13,4 +13,7 @@ router.get("/", PostsController.getPosts);
 // Read Post By ID
 router.get("/:id", PostsController.getPostById);
 
+// Update Post
+router.put("/:id", uploadSingleImage, PostsController.updatePost);
+
 export default router;
