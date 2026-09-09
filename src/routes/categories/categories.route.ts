@@ -9,4 +9,7 @@ router.get("/", CategoriesController.getCategories);
 // Create Category
 router.post("/", CategoriesController.createCategory);
 
+// Get Category By ID
+router.get("/:id", CategoriesController.getCategoryById);
+
 export default router;
