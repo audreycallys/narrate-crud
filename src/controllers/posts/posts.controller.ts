@@ -9,7 +9,7 @@ export class PostsController {
     try {
       const validateData = createPostSchema.parse(req.body);
 
-      const { categoryId, title, content, status } = validateData;
+      const { categoryId, authorName, title, content, status } = validateData;
 
       let imageUrl: string | undefined;
       let imagePublicId: string | undefined;
@@ -25,6 +25,7 @@ export class PostsController {
         .insert(postsTable)
         .values({
           categoryId,
+          authorName,
           title,
           content,
           imageUrl,

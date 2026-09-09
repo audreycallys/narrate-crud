@@ -33,6 +33,7 @@ export const postsTable = pgTable("posts", {
   categoryId: integer("category_id")
     .notNull()
     .references(() => categoriesTable.id, { onDelete: "cascade" }),
+  authorName: varchar("author_name", { length: 100 }).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   content: text("content").notNull(),
   imageUrl: text("image_url"),
