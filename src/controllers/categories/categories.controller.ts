@@ -151,6 +151,41 @@ export class CategoriesController {
       });
     }
   };
+
+  // Delete Category
+  deleteCategory = async (req: Request, res: Response) => {
+    try {
+      const validatedParams = categoryIdSchema.parse(req.params);
+      const { id } = validatedParams;
+
+      const [existingCategory] = await db
+        .select()
+        .from(categoriesTable)
+        .where(eq(categoriesTable.id, id));
+
+      if (!existingCategory) {
+        return res.status(404).json({
+          success: false,
+          message: "Category Not Found",
+        });
+      }
+
+      await db.delete(categoriesTable).where(eq(categoriesTable.id, id));
+
+      return res.status(200).json({
+        success: true,
+        message: "Category deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete category error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
 }
 
 export default new CategoriesController();
