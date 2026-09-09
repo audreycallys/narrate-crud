@@ -20,3 +20,7 @@ export const createPostSchema = z.object({
     .optional()
     .default("draft"),
 });
+
+export const postIdSchema = z.object({
+  id: z.coerce.number().int().positive("Post ID tidak valid"),
+});
