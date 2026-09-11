@@ -46,6 +46,14 @@ export const postsTable = pgTable("posts", {
     .$onUpdate(() => new Date()),
 });
 
+// SAVED POSTS
+export const savedPostsTable = pgTable("saved_posts", {
+  postId: integer("post_id")
+    .primaryKey()
+    .references(() => postsTable.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // TAGS
 export const tagsTable = pgTable("tags", {
   id: serial("id").primaryKey(),
