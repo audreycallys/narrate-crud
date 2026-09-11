@@ -9,4 +9,7 @@ router.get("/", TagsController.getTags);
 // Create Tag
 router.post("/", TagsController.createTag);
 
+// Update Tag
+router.put("/:id", TagsController.updateTag);
+
 export default router;
