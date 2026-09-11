@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { db } from "../../config/db";
-import { postsTable } from "../../config/schema";
+import { postsTable, postTagsTable } from "../../config/schema";
 import {
   uploadToCloudinary,
   deleteFromCloudinary,
@@ -17,7 +17,7 @@ export class PostsController {
   createPost = async (req: Request, res: Response) => {
     try {
       const validateData = createPostSchema.parse(req.body);
-      const { categoryId, title, content, status } = validateData;
+      const { categoryId, title, content, status, tagIds } = validateData;
 
       let imageUrl: string | undefined;
       let imagePublicId: string | undefined;
@@ -40,6 +40,15 @@ export class PostsController {
           status,
         })
         .returning();
+
+      if (tagIds && tagIds.length > 0) {
+        await db.insert(postTagsTable).values(
+          tagIds.map((tagId) => ({
+            postId: newPost.id,
+            tagId: tagId,
+          })),
+        );
+      }
 
       return res.status(201).json({
         success: true,
