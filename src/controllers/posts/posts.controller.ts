@@ -130,11 +130,23 @@ export class PostsController {
         });
       }
 
+      const tags = await db
+        .select({
+          id: tagsTable.id,
+          name: tagsTable.name,
+        })
+        .from(postTagsTable)
+        .innerJoin(tagsTable, eq(postTagsTable.tagId, tagsTable.id))
+        .where(eq(postTagsTable.postId, post.id));
+
       return res.status(200).json({
         success: true,
         message: "Post retrieved successfully",
         data: {
-          post: post,
+          post: {
+            ...post,
+            tags,
+          },
         },
       });
     } catch (error) {
