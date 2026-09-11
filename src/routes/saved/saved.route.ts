@@ -9,4 +9,7 @@ router.get("/", SavedController.getSavedPosts);
 // Save Post
 router.post("/:postId", SavedController.savePost);
 
+// Delete Saved Post
+router.delete("/:postId", SavedController.deleteSavedPost);
+
 export default router;

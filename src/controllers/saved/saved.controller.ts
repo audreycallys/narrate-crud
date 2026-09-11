@@ -97,6 +97,43 @@ export class SavedController {
       });
     }
   };
+
+  // Menghapus Post dari Saved
+  deleteSavedPost = async (req: Request, res: Response) => {
+    try {
+      const validatedParams = savedPostIdSchema.parse(req.params);
+      const { postId } = validatedParams;
+
+      const [existingSavedPost] = await db
+        .select()
+        .from(savedPostsTable)
+        .where(eq(savedPostsTable.postId, postId));
+
+      if (!existingSavedPost) {
+        return res.status(404).json({
+          success: false,
+          message: "Saved Post Not Found",
+        });
+      }
+
+      await db
+        .delete(savedPostsTable)
+        .where(eq(savedPostsTable.postId, postId));
+
+      return res.status(200).json({
+        success: true,
+        message: "Post removed from saved successfully",
+      });
+    } catch (error) {
+      console.error("Delete saved post error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
 }
 
 export default new SavedController();
