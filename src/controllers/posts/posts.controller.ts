@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { db } from "../../config/db";
-import { postsTable, postTagsTable } from "../../config/schema";
+import { postsTable, postTagsTable, tagsTable } from "../../config/schema";
 import {
   uploadToCloudinary,
   deleteFromCloudinary,
@@ -77,11 +77,29 @@ export class PostsController {
         .where(eq(postsTable.status, "published"))
         .orderBy(desc(postsTable.createdAt));
 
+      const postsWithTags = await Promise.all(
+        posts.map(async (post) => {
+          const tags = await db
+            .select({
+              id: tagsTable.id,
+              name: tagsTable.name,
+            })
+            .from(postTagsTable)
+            .innerJoin(tagsTable, eq(postTagsTable.tagId, tagsTable.id))
+            .where(eq(postTagsTable.postId, post.id));
+
+          return {
+            ...post,
+            tags,
+          };
+        }),
+      );
+
       return res.status(200).json({
         success: true,
         message: "Get Posts Successfully",
         data: {
-          posts: posts,
+          posts: postsWithTags,
         },
       });
     } catch (error) {
