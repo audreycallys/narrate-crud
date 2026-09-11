@@ -17,7 +17,7 @@ export class PostsController {
   createPost = async (req: Request, res: Response) => {
     try {
       const validateData = createPostSchema.parse(req.body);
-      const { categoryId, authorName, title, content, status } = validateData;
+      const { categoryId, title, content, status } = validateData;
 
       let imageUrl: string | undefined;
       let imagePublicId: string | undefined;
@@ -33,7 +33,6 @@ export class PostsController {
         .insert(postsTable)
         .values({
           categoryId,
-          authorName,
           title,
           content,
           imageUrl,
@@ -128,7 +127,7 @@ export class PostsController {
       const validatedParams = postIdSchema.parse(req.params);
       const { id } = validatedParams;
       const validateData = updatePostSchema.parse(req.body);
-      const { categoryId, authorName, title, content, status } = validateData;
+      const { categoryId, title, content, status } = validateData;
       const [existingPost] = await db
         .select()
         .from(postsTable)
@@ -155,7 +154,6 @@ export class PostsController {
         .update(postsTable)
         .set({
           categoryId,
-          authorName,
           title,
           content,
           imageUrl,
