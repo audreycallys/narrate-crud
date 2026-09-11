@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { db } from "../../config/db";
-import { postsTable } from "../../config/schema";
+import { postsTable, postTagsTable, tagsTable } from "../../config/schema";
 import {
   uploadToCloudinary,
   deleteFromCloudinary,
@@ -10,14 +10,32 @@ import {
   postIdSchema,
   updatePostSchema,
 } from "../../validations/posts/post.validation";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 
 export class PostsController {
   // Membuat Postingan
   createPost = async (req: Request, res: Response) => {
     try {
       const validateData = createPostSchema.parse(req.body);
-      const { categoryId, title, content, status } = validateData;
+      const { categoryId, title, content, status, tagIds } = validateData;
+
+      if (tagIds && tagIds.length > 0) {
+        const selectedTags = await db
+          .select()
+          .from(tagsTable)
+          .where(inArray(tagsTable.id, tagIds));
+
+        const invalidTag = selectedTags.find(
+          (tag) => tag.categoryId !== categoryId,
+        );
+
+        if (invalidTag || selectedTags.length !== tagIds.length) {
+          return res.status(400).json({
+            success: false,
+            message: "Tag tidak sesuai dengan category yang dipilih",
+          });
+        }
+      }
 
       let imageUrl: string | undefined;
       let imagePublicId: string | undefined;
@@ -40,6 +58,15 @@ export class PostsController {
           status,
         })
         .returning();
+
+      if (tagIds && tagIds.length > 0) {
+        await db.insert(postTagsTable).values(
+          tagIds.map((tagId) => ({
+            postId: newPost.id,
+            tagId: tagId,
+          })),
+        );
+      }
 
       return res.status(201).json({
         success: true,
@@ -68,11 +95,29 @@ export class PostsController {
         .where(eq(postsTable.status, "published"))
         .orderBy(desc(postsTable.createdAt));
 
+      const postsWithTags = await Promise.all(
+        posts.map(async (post) => {
+          const tags = await db
+            .select({
+              id: tagsTable.id,
+              name: tagsTable.name,
+            })
+            .from(postTagsTable)
+            .innerJoin(tagsTable, eq(postTagsTable.tagId, tagsTable.id))
+            .where(eq(postTagsTable.postId, post.id));
+
+          return {
+            ...post,
+            tags,
+          };
+        }),
+      );
+
       return res.status(200).json({
         success: true,
         message: "Get Posts Successfully",
         data: {
-          posts: posts,
+          posts: postsWithTags,
         },
       });
     } catch (error) {
@@ -103,11 +148,23 @@ export class PostsController {
         });
       }
 
+      const tags = await db
+        .select({
+          id: tagsTable.id,
+          name: tagsTable.name,
+        })
+        .from(postTagsTable)
+        .innerJoin(tagsTable, eq(postTagsTable.tagId, tagsTable.id))
+        .where(eq(postTagsTable.postId, post.id));
+
       return res.status(200).json({
         success: true,
         message: "Post retrieved successfully",
         data: {
-          post: post,
+          post: {
+            ...post,
+            tags,
+          },
         },
       });
     } catch (error) {
@@ -127,7 +184,7 @@ export class PostsController {
       const validatedParams = postIdSchema.parse(req.params);
       const { id } = validatedParams;
       const validateData = updatePostSchema.parse(req.body);
-      const { categoryId, title, content, status } = validateData;
+      const { categoryId, title, content, status, tagIds } = validateData;
       const [existingPost] = await db
         .select()
         .from(postsTable)
@@ -138,6 +195,24 @@ export class PostsController {
           success: false,
           message: "Post Not Found",
         });
+      }
+
+      if (tagIds && tagIds.length > 0) {
+        const selectedTags = await db
+          .select()
+          .from(tagsTable)
+          .where(inArray(tagsTable.id, tagIds));
+
+        const invalidTag = selectedTags.find(
+          (tag) => tag.categoryId !== categoryId,
+        );
+
+        if (invalidTag || selectedTags.length !== tagIds.length) {
+          return res.status(400).json({
+            success: false,
+            message: "Tag tidak sesuai dengan category yang dipilih",
+          });
+        }
       }
 
       let imageUrl = existingPost.imageUrl;
@@ -162,6 +237,19 @@ export class PostsController {
         })
         .where(eq(postsTable.id, id))
         .returning();
+
+      if (tagIds) {
+        await db.delete(postTagsTable).where(eq(postTagsTable.postId, id));
+
+        if (tagIds.length > 0) {
+          await db.insert(postTagsTable).values(
+            tagIds.map((tagId) => ({
+              postId: id,
+              tagId: tagId,
+            })),
+          );
+        }
+      }
 
       if (
         req.file &&
