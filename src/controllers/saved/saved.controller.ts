@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { db } from "../../config/db";
 import { postsTable, savedPostsTable } from "../../config/schema";
 import { savedPostIdSchema } from "../../validations/saved/saved.validation";
@@ -52,6 +52,43 @@ export class SavedController {
       });
     } catch (error) {
       console.error("Save post error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
+
+  // Membaca Semua Postingan Tersimpan
+  getSavedPosts = async (req: Request, res: Response) => {
+    try {
+      const savedPosts = await db
+        .select({
+          postId: postsTable.id,
+          categoryId: postsTable.categoryId,
+          title: postsTable.title,
+          content: postsTable.content,
+          imageUrl: postsTable.imageUrl,
+          status: postsTable.status,
+          viewCount: postsTable.viewCount,
+          createdAt: postsTable.createdAt,
+          savedAt: savedPostsTable.createdAt,
+        })
+        .from(savedPostsTable)
+        .innerJoin(postsTable, eq(savedPostsTable.postId, postsTable.id))
+        .orderBy(desc(savedPostsTable.createdAt));
+
+      return res.status(200).json({
+        success: true,
+        message: "Get Saved Posts Successfully",
+        data: {
+          savedPosts: savedPosts,
+        },
+      });
+    } catch (error) {
+      console.error("Get saved posts error:", error);
 
       return res.status(500).json({
         success: false,
