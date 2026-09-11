@@ -37,4 +37,10 @@ export const updatePostSchema = z.object({
   content: z.string().min(10, "Content minimal 10 karakter"),
 
   status: z.enum(["draft", "published", "archived"]),
+
+  tagIds: z
+    .string()
+    .transform((value) => JSON.parse(value))
+    .pipe(z.array(z.coerce.number().int().positive()))
+    .optional(),
 });
