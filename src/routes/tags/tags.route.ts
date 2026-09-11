@@ -12,4 +12,7 @@ router.post("/", TagsController.createTag);
 // Update Tag
 router.put("/:id", TagsController.updateTag);
 
+// Delete Tag
+router.delete("/:id", TagsController.deleteTag);
+
 export default router;
