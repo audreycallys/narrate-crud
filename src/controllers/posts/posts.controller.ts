@@ -136,7 +136,7 @@ export class PostsController {
       const validatedParams = postIdSchema.parse(req.params);
       const { id } = validatedParams;
       const validateData = updatePostSchema.parse(req.body);
-      const { categoryId, title, content, status } = validateData;
+      const { categoryId, title, content, status, tagIds } = validateData;
       const [existingPost] = await db
         .select()
         .from(postsTable)
@@ -171,6 +171,19 @@ export class PostsController {
         })
         .where(eq(postsTable.id, id))
         .returning();
+
+      if (tagIds) {
+        await db.delete(postTagsTable).where(eq(postTagsTable.postId, id));
+
+        if (tagIds.length > 0) {
+          await db.insert(postTagsTable).values(
+            tagIds.map((tagId) => ({
+              postId: id,
+              tagId: tagId,
+            })),
+          );
+        }
+      }
 
       if (
         req.file &&
