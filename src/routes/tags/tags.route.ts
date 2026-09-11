@@ -3,6 +3,10 @@ import TagsController from "../../controllers/tags/tags.controller";
 
 const router = Router();
 
+// Read Tags
 router.get("/", TagsController.getTags);
+
+// Create Tag
+router.post("/", TagsController.createTag);
 
 export default router;
