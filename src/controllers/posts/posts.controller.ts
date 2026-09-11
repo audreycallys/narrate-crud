@@ -10,7 +10,7 @@ import {
   postIdSchema,
   updatePostSchema,
 } from "../../validations/posts/post.validation";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 
 export class PostsController {
   // Membuat Postingan
@@ -18,6 +18,24 @@ export class PostsController {
     try {
       const validateData = createPostSchema.parse(req.body);
       const { categoryId, title, content, status, tagIds } = validateData;
+
+      if (tagIds && tagIds.length > 0) {
+        const selectedTags = await db
+          .select()
+          .from(tagsTable)
+          .where(inArray(tagsTable.id, tagIds));
+
+        const invalidTag = selectedTags.find(
+          (tag) => tag.categoryId !== categoryId,
+        );
+
+        if (invalidTag || selectedTags.length !== tagIds.length) {
+          return res.status(400).json({
+            success: false,
+            message: "Tag tidak sesuai dengan category yang dipilih",
+          });
+        }
+      }
 
       let imageUrl: string | undefined;
       let imagePublicId: string | undefined;
@@ -177,6 +195,24 @@ export class PostsController {
           success: false,
           message: "Post Not Found",
         });
+      }
+
+      if (tagIds && tagIds.length > 0) {
+        const selectedTags = await db
+          .select()
+          .from(tagsTable)
+          .where(inArray(tagsTable.id, tagIds));
+
+        const invalidTag = selectedTags.find(
+          (tag) => tag.categoryId !== categoryId,
+        );
+
+        if (invalidTag || selectedTags.length !== tagIds.length) {
+          return res.status(400).json({
+            success: false,
+            message: "Tag tidak sesuai dengan category yang dipilih",
+          });
+        }
       }
 
       let imageUrl = existingPost.imageUrl;
