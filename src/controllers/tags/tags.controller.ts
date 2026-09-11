@@ -147,6 +147,41 @@ export class TagsController {
       });
     }
   };
+
+  // Hapus Tag
+  deleteTag = async (req: Request, res: Response) => {
+    try {
+      const validatedParams = tagIdSchema.parse(req.params);
+      const { id } = validatedParams;
+
+      const [existingTag] = await db
+        .select()
+        .from(tagsTable)
+        .where(eq(tagsTable.id, id));
+
+      if (!existingTag) {
+        return res.status(404).json({
+          success: false,
+          message: "Tag Not Found",
+        });
+      }
+
+      await db.delete(tagsTable).where(eq(tagsTable.id, id));
+
+      return res.status(200).json({
+        success: true,
+        message: "Tag deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete tag error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Terjadi kesalahan pada server",
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+  };
 }
 
 export default new TagsController();
