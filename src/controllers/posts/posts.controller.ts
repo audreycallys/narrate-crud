@@ -17,7 +17,7 @@ export class PostsController {
   createPost = async (req: Request, res: Response) => {
     try {
       const validateData = createPostSchema.parse(req.body);
-      const { categoryId, authorName, title, content, status } = validateData;
+      const { categoryId, title, content, status } = validateData;
 
       let imageUrl: string | undefined;
       let imagePublicId: string | undefined;
