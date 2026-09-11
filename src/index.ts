@@ -1,7 +1,6 @@
 import express from "express";
 import postsRoute from "./routes/posts/posts.route";
 import categoriesRoute from "./routes/categories/categories.route";
-import commentsRoute from "./routes/comments/comments.route";
 import profileRoute from "./routes/profile/profile.route";
 
 const app = express();
@@ -15,7 +14,6 @@ app.get("/", (req, res) => {
 
 app.use("/api/posts", postsRoute);
 app.use("/api/categories", categoriesRoute);
-app.use("/api/posts", commentsRoute);
 app.use("/api/profile", profileRoute);
 
 app.listen(PORT, () => {
